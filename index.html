@@ -1,39 +1,364 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a0a0f" />
-  <title>Fendyx — SuperApp 2027</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+// ============================================
+// CONFIGURACIÓN
+// ============================================
+const CONFIG = {
+  APP_NAME: 'Fendyx',
+  SUPABASE_URL: 'https://hzyjbwnedgpjzbaodilk.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWpid25lZGdwanpiYW9kaWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3MDUzNDMsImV4cCI6MjEwNDI4MTM0M30.koUX5Xi-eztsqztGlqRG0vagHFM642mcZCI_uR6lJb8',
+  ROLES: { USER: 'user', ADMIN: 'admin', RESTAURANT: 'restaurant', DELIVERY: 'delivery', CLUB: 'club', REMOTE_WORKER: 'remote-worker' }
+};
+
+// ============================================
+// SUPABASE CLIENT
+// ============================================
+const { createClient } = window.supabase;
+const supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+console.log('✅ Fendyx + Supabase conectado');
+
+// ============================================
+// ESTADO GLOBAL
+// ============================================
+let currentUser = null;
+let userProfile = null;
+
+// ============================================
+// HELPERS
+// ============================================
+const helpers = {
+  toast: (message, type = 'success', duration = 3500) => {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    const icons = { success: '✅', error: '❌', warning: '⚠️' };
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${icons[type] || ''}</span><span>${message}</span>`;
+    toast.classList.add('show');
+    clearTimeout(helpers._toastTimer);
+    helpers._toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+  },
+  setLoading: (btn, isLoading) => {
+    if (!btn) return;
+    if (isLoading) {
+      btn.disabled = true;
+      btn.dataset.originalText = btn.textContent;
+      btn.textContent = 'Procesando...';
+      const spinner = document.createElement('span');
+      spinner.className = 'spinner';
+      btn.appendChild(spinner);
+    } else {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.originalText;
+    }
+  }
+};
+
+// ============================================
+// VISTAS
+// ============================================
+const views = {
+  login: `
+    <div class="auth-screen">
+      <div class="auth-bg"></div>
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="auth-logo">⚡</div>
+          <h1 class="auth-title">Bienvenido a Fendyx</h1>
+          <p class="auth-subtitle">Ingresa a tu cuenta para continuar</p>
+        </div>
+        <div class="card-glass">
+          <form id="loginForm">
+            <div class="form-group">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" id="loginEmail" class="input" placeholder="tu@correo.com" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="loginPassword" class="input" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn btn-primary" id="loginBtn">Iniciar sesión</button>
+          </form>
+        </div>
+        <div class="auth-footer">
+          ¿No tienes cuenta? <a href="#" class="auth-link" data-route="register">Regístrate gratis</a>
+        </div>
+      </div>
+    </div>
+  `,
+  register: `
+    <div class="auth-screen">
+      <div class="auth-bg"></div>
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="auth-logo">⚡</div>
+          <h1 class="auth-title">Crea tu cuenta</h1>
+          <p class="auth-subtitle">Únete a la revolución digital Fendyx</p>
+        </div>
+        <div class="card-glass">
+          <form id="registerForm">
+            <label class="form-label">¿Qué tipo de cuenta necesitas?</label>
+            <div class="role-selector">
+              <div class="role-card" data-role="user">
+                <span class="role-icon">👤</span>
+                <div class="role-name">Usuario</div>
+                <div class="role-desc">Cliente general</div>
+              </div>
+              <div class="role-card" data-role="restaurant">
+                <span class="role-icon">🍔</span>
+                <div class="role-name">Restaurante</div>
+                <div class="role-desc">Vende comida</div>
+              </div>
+              <div class="role-card" data-role="delivery">
+                <span class="role-icon">🛵</span>
+                <div class="role-name">Domiciliario</div>
+                <div class="role-desc">Moto o carro</div>
+              </div>
+              <div class="role-card" data-role="club">
+                <span class="role-icon">🎉</span>
+                <div class="role-name">Discoteca</div>
+                <div class="role-desc">Eventos nocturnos</div>
+              </div>
+              <div class="role-card" data-role="remote-worker">
+                <span class="role-icon">💼</span>
+                <div class="role-name">Trabajador</div>
+                <div class="role-desc">Remoto / Freelance</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" id="regFirstName" class="input" placeholder="Juan" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Apellido</label>
+                <input type="text" id="regLastName" class="input" placeholder="Pérez" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" id="regEmail" class="input" placeholder="tu@correo.com" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Fecha de nacimiento</label>
+                <input type="date" id="regBirthdate" class="input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" id="regPhone" class="input" placeholder="+58 414..." required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="regPassword" class="input" placeholder="Mínimo 8 caracteres" required />
+            </div>
+            <button type="submit" class="btn btn-primary" id="registerBtn">Crear cuenta</button>
+          </form>
+        </div>
+        <div class="auth-footer">
+          ¿Ya tienes cuenta? <a href="#" class="auth-link" data-route="login">Inicia sesión</a>
+        </div>
+      </div>
+    </div>
+  `,
+  admin: `
+    <div class="auth-screen">
+      <div class="auth-bg"></div>
+      <div class="auth-container" style="max-width: 900px;">
+        <div class="auth-header">
+          <div class="auth-logo"></div>
+          <h1 class="auth-title">Panel de Administrador</h1>
+          <p class="auth-subtitle">Control total de Fendyx</p>
+        </div>
+        <div class="card-glass">
+          <div style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Bienvenido, Admin</h3>
+            <p style="margin-bottom: 1.5rem;">Tokens disponibles: <strong id="adminTokens">999,999</strong></p>
+            <button class="btn btn-primary" id="logoutBtn" style="width: auto; padding: 0.5rem 1rem;">Cerrar sesión</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div class="role-card">
+              <span class="role-icon">👥</span>
+              <div class="role-name">Usuarios</div>
+              <div class="role-desc">Gestionar usuarios</div>
+            </div>
+            <div class="role-card">
+              <span class="role-icon"></span>
+              <div class="role-name">Tokens</div>
+              <div class="role-desc">Asignar/retirar</div>
+            </div>
+            <div class="role-card">
+              <span class="role-icon">📊</span>
+              <div class="role-name">Reportes</div>
+              <div class="role-desc">Ver estadísticas</div>
+            </div>
+            <div class="role-card">
+              <span class="role-icon">⚙️</span>
+              <div class="role-name">Configuración</div>
+              <div class="role-desc">Ajustes del sistema</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+};
+
+// ============================================
+// ROUTER
+// ============================================
+let selectedRole = null;
+const app = document.getElementById('app');
+
+function navigate(route) {
+  if (views[route]) {
+    app.innerHTML = views[route];
+    if (route === 'login') setupLogin();
+    if (route === 'register') setupRegister();
+    if (route === 'admin') setupAdmin();
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('[data-route]');
+  if (link) {
+    e.preventDefault();
+    navigate(link.dataset.route);
+  }
+});
+
+// ============================================
+// LOGIN
+// ============================================
+function setupLogin() {
+  const form = document.getElementById('loginForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    
+    helpers.setLoading(btn, true);
+    try {
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      // Buscar perfil del usuario
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profileError) {
+        helpers.toast('Perfil no encontrado', 'error');
+        return;
+      }
+      
+      currentUser = user;
+      userProfile = profile;
+      
+      helpers.toast(`¡Bienvenido ${profile.first_name}! 🎉`, 'success');
+      
+      // Redirigir según el rol
+      if (profile.role === 'admin') {
+        setTimeout(() => navigate('admin'), 1000);
+      } else {
+        helpers.toast('Dashboard en construcción', 'warning');
+      }
+    } catch (err) {
+      helpers.toast('Credenciales incorrectas', 'error');
+    } finally {
+      helpers.setLoading(btn, false);
+    }
+  });
+}
+
+// ============================================
+// REGISTER
+// ============================================
+function setupRegister() {
+  document.querySelectorAll('.role-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedRole = card.dataset.role;
+    });
+  });
+
+  const form = document.getElementById('registerForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedRole) return helpers.toast('Selecciona un tipo de cuenta', 'warning');
+    
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const firstName = document.getElementById('regFirstName').value;
+    const lastName = document.getElementById('regLastName').value;
+    const phone = document.getElementById('regPhone').value;
+    const birthdate = document.getElementById('regBirthdate').value;
+    const btn = document.getElementById('registerBtn');
+
+    helpers.setLoading(btn, true);
+    try {
+      const { data: { user }, error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { role: selectedRole, first_name: firstName } }
+      });
+      if (error) throw error;
+      
+      // Crear perfil en la tabla
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          user_id: user.id,
+          email: email,
+          role: selectedRole,
+          first_name: firstName,
+          last_name: lastName,
+          phone: phone,
+          birthdate: birthdate,
+          tokens: 0,
+          status: 'active'
+        }]);
+      
+      if (profileError) throw profileError;
+      
+      helpers.toast('¡Cuenta creada! Revisa tu correo ', 'success');
+      setTimeout(() => navigate('login'), 2000);
+    } catch (err) {
+      helpers.toast(err.message || 'Error al registrar', 'error');
+    } finally {
+      helpers.setLoading(btn, false);
+    }
+  });
+}
+
+// ============================================
+// ADMIN
+// ============================================
+function setupAdmin() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      currentUser = null;
+      userProfile = null;
+      helpers.toast('Sesión cerrada', 'success');
+      navigate('login');
+    });
+  }
   
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  // Mostrar tokens del admin
+  if (userProfile) {
+    const tokensEl = document.getElementById('adminTokens');
+    if (tokensEl) {
+      tokensEl.textContent = userProfile.tokens.toLocaleString();
+    }
+  }
+}
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/base/variables.css" />
-  <link rel="stylesheet" href="css/base/reset.css" />
-  <link rel="stylesheet" href="css/base/typography.css" />
-  <link rel="stylesheet" href="css/components/buttons.css" />
-  <link rel="stylesheet" href="css/components/inputs.css" />
-  <link rel="stylesheet" href="css/components/cards.css" />
-  <link rel="stylesheet" href="css/layouts/auth.css" />
-  <link rel="stylesheet" href="css/pages/login.css" />
-  <link rel="stylesheet" href="css/pages/register.css" />
-  <link rel="stylesheet" href="css/pages/recover.css" />
-</head>
-<body>
-  <main id="app"></main>
-  <div id="toast" class="toast"></div>
-
-  <!-- JS -->
-  <script type="module" src="js/core/config.js"></script>
-  <script type="module" src="js/core/supabase-client.js"></script>
-  <script type="module" src="js/core/router.js"></script>
-  <script type="module" src="js/utils/validators.js"></script>
-  <script type="module" src="js/utils/helpers.js"></script>
-  <script type="module" src="js/ui/animations.js"></script>
-  <script type="module" src="js/ui/theme.js"></script>
-  <script type="module" src="js/modules/auth.js"></script>
-</body>
-</html>
+// ============================================
+// INICIALIZAR
+// ============================================
+navigate('login');
