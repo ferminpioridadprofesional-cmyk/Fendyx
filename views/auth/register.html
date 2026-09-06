@@ -1,0 +1,75 @@
+<div class="auth-screen register-screen">
+  <div class="auth-bg"></div>
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">⚡</div>
+      <h1 class="auth-title text-gradient">Crea tu cuenta</h1>
+      <p class="auth-subtitle">Únete a la revolución digital Fendyx</p>
+    </div>
+    <div class="card-glass">
+      <form id="registerForm" class="register-form" novalidate>
+        <div class="age-notice">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Debes ser <strong>mayor de 18 años</strong> para registrarte.</span>
+        </div>
+        <label class="form-label">¿Qué tipo de cuenta necesitas?</label>
+        <div class="role-selector" id="roleSelector">
+          <div class="role-card" data-role="user"><span class="role-icon">👤</span><div class="role-name">Usuario</div><div class="role-desc">Cliente general</div></div>
+          <div class="role-card" data-role="restaurant"><span class="role-icon">🍔</span><div class="role-name">Restaurante</div><div class="role-desc">Vende comida</div></div>
+          <div class="role-card" data-role="delivery"><span class="role-icon">🛵</span><div class="role-name">Domiciliario</div><div class="role-desc">Moto o carro</div></div>
+          <div class="role-card" data-role="club"><span class="role-icon">🎉</span><div class="role-name">Discoteca</div><div class="role-desc">Eventos nocturnos</div></div>
+          <div class="role-card" data-role="remote-worker"><span class="role-icon">💼</span><div class="role-name">Trabajador</div><div class="role-desc">Remoto / Freelance</div></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="regFirstName">Nombre</label><input type="text" id="regFirstName" class="input" placeholder="Juan" required /></div>
+          <div class="form-group"><label class="form-label" for="regLastName">Apellido</label><input type="text" id="regLastName" class="input" placeholder="Pérez" required /></div>
+        </div>
+        <div class="form-group"><label class="form-label" for="regEmail">Correo electrónico</label><input type="email" id="regEmail" class="input" placeholder="tu@correo.com" required /></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="regBirthdate">Fecha de nacimiento</label><input type="date" id="regBirthdate" class="input" required /></div>
+          <div class="form-group"><label class="form-label" for="regPhone">Teléfono</label><input type="tel" id="regPhone" class="input" placeholder="+58 414..." required /></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Contraseña</label>
+          <div class="input-wrapper">
+            <input type="password" id="regPassword" class="input has-icon-right" placeholder="Mínimo 8 caracteres" required />
+            <button type="button" class="input-icon-right toggle-password" data-target="regPassword">
+              <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="role-fields" data-role-fields="user"></div>
+        <div class="role-fields" data-role-fields="restaurant">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="restRif">RIF</label><input type="text" id="restRif" class="input" placeholder="J-12345678-9" /></div>
+            <div class="form-group"><label class="form-label" for="restDoc">Cédula representante</label><input type="text" id="restDoc" class="input" placeholder="V-12345678" /></div>
+          </div>
+        </div>
+        <div class="role-fields" data-role-fields="delivery">
+          <div class="form-group"><label class="form-label" for="delDoc">Cédula</label><input type="text" id="delDoc" class="input" placeholder="V-12345678" /></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="delVehicleType">Vehículo</label><select id="delVehicleType" class="input"><option value="">Seleccionar...</option><option value="moto">🏍️ Moto</option><option value="carro">🚗 Carro</option></select></div>
+            <div class="form-group"><label class="form-label" for="delPlate">Placa</label><input type="text" id="delPlate" class="input" placeholder="ABC123" /></div>
+          </div>
+        </div>
+        <div class="role-fields" data-role-fields="club">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="clubRif">RIF</label><input type="text" id="clubRif" class="input" placeholder="J-12345678-9" /></div>
+            <div class="form-group"><label class="form-label" for="clubCapacity">Aforo máximo</label><input type="number" id="clubCapacity" class="input" placeholder="200" /></div>
+          </div>
+        </div>
+        <div class="role-fields" data-role-fields="remote-worker">
+          <div class="form-group"><label class="form-label" for="rwProfession">Profesión / Especialidad</label><input type="text" id="rwProfession" class="input" placeholder="Diseñador, Tutor, Coach..." /></div>
+          <div class="form-group"><label class="form-label" for="rwRate">Tarifa por minuto (tokens)</label><input type="number" id="rwRate" class="input" placeholder="0.25" step="0.01" min="0.01" /></div>
+        </div>
+        <label class="terms-wrapper">
+          <input type="checkbox" id="termsAccepted" required />
+          <span>Acepto los <a href="#" class="auth-link">Términos y Condiciones</a> y confirmo ser <strong>mayor de 18 años</strong>.</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-full" id="registerBtn"><span class="btn-text">Crear cuenta</span></button>
+      </form>
+    </div>
+    <div class="auth-footer">¿Ya tienes cuenta? <a href="#" data-route="login" class="auth-link">Inicia sesión</a></div>
+  </div>
+</div>
