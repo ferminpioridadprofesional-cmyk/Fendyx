@@ -47,21 +47,28 @@
     }
     .form-group { margin-bottom: 1.25rem; }
     label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text2); }
+    .input-wrapper { position: relative; }
     input {
-      width: 100%; padding: 0.875rem 1rem;
+      width: 100%; padding: 0.875rem 3rem 0.875rem 1rem;
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 16px; color: white; font-size: 0.95rem;
     }
     input:focus { border-color: var(--accent); outline: none; }
+    .toggle-password {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text2); cursor: pointer;
+      padding: 5px; font-size: 1.2rem;
+    }
+    .toggle-password:hover { color: var(--accent); }
     .btn {
       width: 100%; padding: 0.875rem; border: none; border-radius: 16px;
       background: var(--gradient); color: white; font-weight: 600;
       cursor: pointer; transition: transform 0.2s;
     }
     .btn:hover { transform: translateY(-2px); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .footer { text-align: center; margin-top: 1.5rem; color: var(--text2); }
-    .link { color: var(--accent); cursor: pointer; }
+    .link { color: var(--accent); cursor: pointer; text-decoration: underline; }
     .hidden { display: none !important; }
     .role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
     .role-card {
@@ -69,7 +76,7 @@
       border-radius: 16px; text-align: center; cursor: pointer; transition: all 0.3s;
     }
     .role-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-    .role-card.selected { background: rgba(0,240,255,0.1); border-color: var(--accent); }
+    .role-card.selected { background: rgba(0,240,255,0.1); border-color: var(--accent); box-shadow: 0 0 20px rgba(0,240,255,0.2); }
     .role-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
     .role-name { font-weight: 600; font-size: 0.85rem; }
     .admin-panel { max-width: 600px; }
@@ -85,76 +92,84 @@
 <body>
   <div class="auth-bg"></div>
   
-  <!-- LOGIN VIEW - SIEMPRE VISIBLE AL INICIO -->
+  <!-- LOGIN VIEW -->
   <div class="container" id="loginView">
     <div>
-      <div class="logo"></div>
+      <div class="logo">⚡</div>
       <h1>Bienvenido a Fendyx</h1>
       <p class="subtitle">Ingresa a tu cuenta</p>
       <div class="card">
         <form id="loginForm">
           <div class="form-group">
             <label>Email</label>
-            <input type="email" id="loginEmail" required placeholder="tu@correo.com" />
+            <div class="input-wrapper">
+              <input type="email" id="loginEmail" required placeholder="tu@correo.com" autocomplete="email" />
+            </div>
           </div>
           <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="loginPassword" required placeholder="••••••••" />
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password" />
+              <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</button>
+            </div>
           </div>
           <button type="submit" class="btn" id="loginBtn">Iniciar sesión</button>
         </form>
       </div>
-      <div class="footer">¿No tienes cuenta? <span class="link" id="goRegister">Regístrate</span></div>
+      <div class="footer">¿No tienes cuenta? <span class="link" onclick="showView('register')">Regístrate</span></div>
     </div>
   </div>
 
-  <!-- REGISTER VIEW - OCULTO AL INICIO -->
+  <!-- REGISTER VIEW -->
   <div class="container hidden" id="registerView">
     <div>
-      <div class="logo"></div>
+      <div class="logo">⚡</div>
       <h1>Crea tu cuenta</h1>
       <p class="subtitle">Únete a Fendyx</p>
       <div class="card">
         <form id="registerForm">
           <label>Tipo de cuenta</label>
           <div class="role-selector">
-            <div class="role-card selected" data-role="user">
-              <div class="role-icon"></div>
+            <div class="role-card selected" data-role="user" onclick="selectRole(this)">
+              <div class="role-icon">👤</div>
               <div class="role-name">Usuario</div>
             </div>
-            <div class="role-card" data-role="restaurant">
+            <div class="role-card" data-role="restaurant" onclick="selectRole(this)">
               <div class="role-icon">🍔</div>
               <div class="role-name">Restaurante</div>
             </div>
-            <div class="role-card" data-role="delivery">
+            <div class="role-card" data-role="delivery" onclick="selectRole(this)">
               <div class="role-icon">🛵</div>
               <div class="role-name">Domiciliario</div>
             </div>
-            <div class="role-card" data-role="club">
+            <div class="role-card" data-role="club" onclick="selectRole(this)">
               <div class="role-icon">🎉</div>
               <div class="role-name">Discoteca</div>
             </div>
           </div>
           <div class="form-group">
             <label>Nombre</label>
-            <input type="text" id="regName" required />
+            <input type="text" id="regName" required placeholder="Tu nombre" />
           </div>
           <div class="form-group">
             <label>Email</label>
-            <input type="email" id="regEmail" required />
+            <input type="email" id="regEmail" required placeholder="tu@correo.com" />
           </div>
           <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="regPassword" required />
+            <div class="input-wrapper">
+              <input type="password" id="regPassword" required placeholder="Mínimo 8 caracteres" />
+              <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</button>
+            </div>
           </div>
           <button type="submit" class="btn" id="registerBtn">Crear cuenta</button>
         </form>
       </div>
-      <div class="footer">¿Ya tienes cuenta? <span class="link" id="goLogin">Inicia sesión</span></div>
+      <div class="footer">¿Ya tienes cuenta? <span class="link" onclick="showView('login')">Inicia sesión</span></div>
     </div>
   </div>
 
-  <!-- ADMIN VIEW - OCULTO AL INICIO -->
+  <!-- ADMIN VIEW -->
   <div class="container hidden" id="adminView">
     <div class="admin-panel">
       <div>
@@ -174,7 +189,7 @@
               <div style="color: var(--text2); font-size: 0.875rem;">Rol</div>
             </div>
           </div>
-          <button class="btn" id="logoutBtn" style="margin-top: 1.5rem;">Cerrar sesión</button>
+          <button class="btn" id="logoutBtn" style="margin-top: 1.5rem;" onclick="logout()">Cerrar sesión</button>
         </div>
       </div>
     </div>
@@ -182,15 +197,17 @@
 
   <script>
     // ============================================
-    // INICIALIZACIÓN
+    // VARIABLES GLOBALES
     // ============================================
     let supabase = null;
     let currentUser = null;
     let userProfile = null;
     let selectedRole = 'user';
 
-    // Crear cliente Supabase
-    try {
+    // ============================================
+    // INICIALIZAR SUPABASE
+    // ============================================
+    window.addEventListener('DOMContentLoaded', function() {
       if (window.supabase) {
         supabase = window.supabase.createClient(
           'https://hzyjbwnedgpjzbaodilk.supabase.co',
@@ -198,12 +215,33 @@
         );
         console.log('✅ Supabase conectado');
       }
-    } catch (e) {
-      console.error('❌ Error Supabase:', e);
+    });
+
+    // ============================================
+    // MOSTRAR/OCULTAR CONTRASEÑA
+    // ============================================
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+      }
     }
 
     // ============================================
-    // NAVEGACIÓN
+    // SELECCIONAR ROL
+    // ============================================
+    function selectRole(card) {
+      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedRole = card.dataset.role;
+    }
+
+    // ============================================
+    // CAMBIAR VISTA
     // ============================================
     function showView(viewName) {
       document.getElementById('loginView').classList.add('hidden');
@@ -213,27 +251,30 @@
     }
 
     // ============================================
-    // LOGIN
+    // LOGIN FORM
     // ============================================
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
       const btn = document.getElementById('loginBtn');
+      
       btn.disabled = true;
       btn.textContent = 'Procesando...';
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: document.getElementById('loginEmail').value,
-          password: document.getElementById('loginPassword').value
-        });
-
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
         if (error) throw error;
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', data.user.id)
           .single();
+
+        if (profileError) throw profileError;
 
         currentUser = data.user;
         userProfile = profile;
@@ -255,42 +296,40 @@
     });
 
     // ============================================
-    // REGISTER
+    // REGISTER FORM
     // ============================================
-    document.querySelectorAll('.role-card').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedRole = card.dataset.role;
-      });
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
       const btn = document.getElementById('registerBtn');
+      
       btn.disabled = true;
       btn.textContent = 'Creando...';
 
       try {
         const { data, error } = await supabase.auth.signUp({
-          email: document.getElementById('regEmail').value,
-          password: document.getElementById('regPassword').value,
-          options: { data: { role: selectedRole, first_name: document.getElementById('regName').value } }
+          email: email,
+          password: password,
+          options: { data: { role: selectedRole, first_name: name } }
         });
 
         if (error) throw error;
 
         await supabase.from('profiles').insert([{
           user_id: data.user.id,
-          email: document.getElementById('regEmail').value,
+          email: email,
           role: selectedRole,
-          first_name: document.getElementById('regName').value,
+          first_name: name,
           tokens: 0,
           status: 'active'
         }]);
 
         alert('¡Cuenta creada! Ahora inicia sesión');
         showView('login');
+        document.getElementById('registerForm').reset();
       } catch (err) {
         alert('Error: ' + err.message);
       } finally {
@@ -300,20 +339,16 @@
     });
 
     // ============================================
-    // NAV LINKS
-    // ============================================
-    document.getElementById('goRegister').addEventListener('click', () => showView('register'));
-    document.getElementById('goLogin').addEventListener('click', () => showView('login'));
-
-    // ============================================
     // LOGOUT
     // ============================================
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      if (supabase) await supabase.auth.signOut();
+    function logout() {
+      if (supabase) {
+        supabase.auth.signOut();
+      }
       currentUser = null;
       userProfile = null;
       showView('login');
-    });
+    }
   </script>
 </body>
 </html>
