@@ -9,7 +9,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #0a0a0f; --accent: #00f0ff; --accent2: #ff00ea;
+      --bg: #0a0a0f; --accent: #00f0ff;
       --gradient: linear-gradient(135deg, #00f0ff 0%, #7b2ff7 50%, #ff00ea 100%);
       --text: #ffffff; --text2: #a0a0b0;
     }
@@ -94,6 +94,7 @@
     .error-box {
       background: rgba(255,56,96,0.1); border: 1px solid #ff3860;
       border-radius: 16px; padding: 1rem; margin: 1rem 0; color: #ff3860;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -109,37 +110,49 @@
   <div id="toast" class="toast"></div>
 
   <script>
-    // Verificar que Supabase esté cargado
-    if (!window.supabase) {
-      document.getElementById('app').innerHTML = `
-        <div class="container">
-          <div class="error-box">
-            <strong>❌ Error:</strong> Supabase no se cargó. Verifica tu conexión a internet.
-          </div>
-        </div>
-      `;
-      throw new Error('Supabase no cargado');
-    }
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+    const SUPABASE_URL = 'https://hzyjbwnedgpjzbaodilk.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWpid25lZGdwanpiYW9kaWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3MDUzNDMsImV4cCI6MjEwNDI4MTM0M30.koUX5Xi-eztsqztGlqRG0vagHFM642mcZCI_uR6lJb8';
 
-    const supabase = window.supabase.createClient(
-      'https://hzyjbwnedgpjzbaodilk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWpid25lZGdwanpiYW9kaWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3MDUzNDMsImV4cCI6MjEwNDI4MTM0M30.koUX5Xi-eztsqztGlqRG0vagHFM642mcZCI_uR6lJb8'
-    );
-
+    let supabase = null;
     let currentUser = null;
     let userProfile = null;
+    let selectedRole = 'user';
 
-    const toast = (msg, type = 'success') => {
+    // ============================================
+    // INICIALIZAR SUPABASE (con manejo de errores)
+    // ============================================
+    try {
+      if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✅ Supabase inicializado');
+      } else {
+        console.warn('⚠️ Supabase CDN no cargó');
+      }
+    } catch (e) {
+      console.error('❌ Error inicializando Supabase:', e);
+    }
+
+    // ============================================
+    // TOAST
+    // ============================================
+    function toast(msg, type = 'success') {
       const t = document.getElementById('toast');
-      t.className = `toast ${type} show`;
+      if (!t) return;
+      t.className = 'toast ' + type + ' show';
       t.innerHTML = msg;
       setTimeout(() => t.classList.remove('show'), 3000);
-    };
+    }
 
-    const views = {
-      login: `
+    // ============================================
+    // VISTAS
+    // ============================================
+    function getLoginView() {
+      return `
         <div class="container">
-          <div class="logo">⚡</div>
+          <div class="logo"></div>
           <h1>Bienvenido a Fendyx</h1>
           <p class="subtitle">Ingresa a tu cuenta</p>
           <div class="card">
@@ -155,10 +168,13 @@
               <button type="submit" class="btn" id="loginBtn">Iniciar sesión</button>
             </form>
           </div>
-          <div class="footer">¿No tienes cuenta? <span class="link" onclick="navigate('register')">Regístrate</span></div>
+          <div class="footer">¿No tienes cuenta? <span class="link" id="goRegister">Regístrate</span></div>
         </div>
-      `,
-      register: `
+      `;
+    }
+
+    function getRegisterView() {
+      return `
         <div class="container">
           <div class="logo"></div>
           <h1>Crea tu cuenta</h1>
@@ -176,7 +192,7 @@
                   <div class="role-name">Restaurante</div>
                 </div>
                 <div class="role-card" data-role="delivery">
-                  <div class="role-icon"></div>
+                  <div class="role-icon">🛵</div>
                   <div class="role-name">Domiciliario</div>
                 </div>
                 <div class="role-card" data-role="club">
@@ -199,44 +215,66 @@
               <button type="submit" class="btn" id="registerBtn">Crear cuenta</button>
             </form>
           </div>
-          <div class="footer">¿Ya tienes cuenta? <span class="link" onclick="navigate('login')">Inicia sesión</span></div>
+          <div class="footer">¿Ya tienes cuenta? <span class="link" id="goLogin">Inicia sesión</span></div>
         </div>
-      `,
-      admin: `
+      `;
+    }
+
+    function getAdminView() {
+      const name = userProfile ? userProfile.first_name : 'Admin';
+      const tokens = userProfile ? userProfile.tokens : 0;
+      const role = userProfile ? userProfile.role : 'admin';
+      return `
         <div class="container admin-panel">
           <div class="logo">👑</div>
           <h1>Panel de Administrador</h1>
           <p class="subtitle">Control total</p>
           <div class="card">
-            <p style="margin-bottom: 1rem;">Bienvenido, <strong>${userProfile?.first_name || 'Admin'}</strong></p>
-            <p style="margin-bottom: 1.5rem;">Tokens: <strong style="color: var(--accent);">${userProfile?.tokens || 0}</strong></p>
+            <p style="margin-bottom: 1rem;">Bienvenido, <strong>${name}</strong></p>
+            <p style="margin-bottom: 1.5rem;">Tokens: <strong style="color: var(--accent);">${tokens}</strong></p>
             <div class="admin-stats">
               <div class="stat-card">
-                <div class="stat-value">${userProfile?.tokens || 0}</div>
+                <div class="stat-value">${tokens}</div>
                 <div style="color: var(--text2); font-size: 0.875rem;">Tokens disponibles</div>
               </div>
               <div class="stat-card">
-                <div class="stat-value">${userProfile?.role || 'admin'}</div>
+                <div class="stat-value">${role}</div>
                 <div style="color: var(--text2); font-size: 0.875rem;">Rol</div>
               </div>
             </div>
-            <button class="btn" onclick="logout()" style="margin-top: 1.5rem;">Cerrar sesión</button>
+            <button class="btn" id="logoutBtn" style="margin-top: 1.5rem;">Cerrar sesión</button>
           </div>
         </div>
-      `
-    };
+      `;
+    }
 
-    let selectedRole = 'user';
-
+    // ============================================
+    // NAVEGACIÓN
+    // ============================================
     function navigate(view) {
-      document.getElementById('app').innerHTML = views[view] || views.login;
+      const app = document.getElementById('app');
+      if (view === 'login') app.innerHTML = getLoginView();
+      else if (view === 'register') app.innerHTML = getRegisterView();
+      else if (view === 'admin') app.innerHTML = getAdminView();
+      else app.innerHTML = getLoginView();
+
+      // Event listeners
       if (view === 'login') setupLogin();
       if (view === 'register') setupRegister();
       if (view === 'admin') setupAdmin();
     }
 
+    // ============================================
+    // LOGIN
+    // ============================================
     function setupLogin() {
       const form = document.getElementById('loginForm');
+      const goRegister = document.getElementById('goRegister');
+      
+      if (goRegister) {
+        goRegister.addEventListener('click', () => navigate('register'));
+      }
+
       if (!form) return;
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -245,10 +283,15 @@
         btn.textContent = 'Procesando...';
 
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: document.getElementById('loginEmail').value,
-            password: document.getElementById('loginPassword').value
-          });
+          if (!supabase) {
+            toast('⚠️ Supabase no disponible', 'error');
+            return;
+          }
+
+          const email = document.getElementById('loginEmail').value;
+          const password = document.getElementById('loginPassword').value;
+
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
           if (error) throw error;
 
@@ -263,9 +306,9 @@
           currentUser = data.user;
           userProfile = profile;
 
-          toast(`¡Bienvenido ${profile?.first_name || 'Usuario'}!`, 'success');
+          toast(`¡Bienvenido ${profile.first_name}!`, 'success');
 
-          if (profile?.role === 'admin') {
+          if (profile.role === 'admin') {
             setTimeout(() => navigate('admin'), 1000);
           }
         } catch (err) {
@@ -277,7 +320,15 @@
       });
     }
 
+    // ============================================
+    // REGISTER
+    // ============================================
     function setupRegister() {
+      const goLogin = document.getElementById('goLogin');
+      if (goLogin) {
+        goLogin.addEventListener('click', () => navigate('login'));
+      }
+
       document.querySelectorAll('.role-card').forEach(card => {
         card.addEventListener('click', () => {
           document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
@@ -295,19 +346,27 @@
         btn.textContent = 'Creando...';
 
         try {
+          if (!supabase) {
+            toast('⚠️ Supabase no disponible', 'error');
+            return;
+          }
+
+          const email = document.getElementById('regEmail').value;
+          const password = document.getElementById('regPassword').value;
+          const name = document.getElementById('regName').value;
+
           const { data, error } = await supabase.auth.signUp({
-            email: document.getElementById('regEmail').value,
-            password: document.getElementById('regPassword').value,
-            options: { data: { role: selectedRole, first_name: document.getElementById('regName').value } }
+            email, password,
+            options: { data: { role: selectedRole, first_name: name } }
           });
 
           if (error) throw error;
 
           await supabase.from('profiles').insert([{
             user_id: data.user.id,
-            email: document.getElementById('regEmail').value,
+            email: email,
             role: selectedRole,
-            first_name: document.getElementById('regName').value,
+            first_name: name,
             tokens: 0,
             status: 'active'
           }]);
@@ -323,13 +382,36 @@
       });
     }
 
+    // ============================================
+    // ADMIN
+    // ============================================
     function setupAdmin() {
-      console.log('Panel admin cargado');
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          if (supabase) await supabase.auth.signOut();
+          currentUser = null;
+          userProfile = null;
+          toast('Sesión cerrada', 'success');
+          navigate('login');
+        });
+      }
     }
 
-    async function logout() {
-      await supabase.auth.signOut();
-      currentUser = null;
-      userProfile = null;
-      toast('Sesión cerrada', 'success');
+    // ============================================
+    // INICIAR - SIEMPRE muestra algo
+    // ============================================
+    try {
       navigate('login');
+    } catch (e) {
+      document.getElementById('app').innerHTML = `
+        <div class="container">
+          <div class="error-box">
+            <strong>❌ Error al cargar:</strong> ${e.message}
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
