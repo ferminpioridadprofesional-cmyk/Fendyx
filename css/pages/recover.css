@@ -1,0 +1,2 @@
+.recover-info { padding: 1rem; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: var(--radius-md); font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+.recover-info strong { color: var(--color-accent-primary); }
