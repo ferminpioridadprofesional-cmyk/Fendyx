@@ -1,0 +1,2 @@
+.card-glass { background: var(--color-bg-glass); border: var(--border-glass); border-radius: var(--radius-xl); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: var(--shadow-soft); padding: 2rem; position: relative; overflow: hidden; }
+.card-glass::before { content: ''; position: absolute; inset: 0; padding: 1px; background: var(--gradient-primary); border-radius: inherit; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.3; pointer-events: none; }
