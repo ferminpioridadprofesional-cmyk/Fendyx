@@ -1,0 +1,7 @@
+.login-form { display: flex; flex-direction: column; gap: 0.25rem; }
+.login-options { display: flex; justify-content: space-between; align-items: center; margin: 0.5rem 0 1.5rem; font-size: 0.875rem; }
+.checkbox-wrapper { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+.checkbox-wrapper input { width: 16px; height: 16px; accent-color: var(--color-accent-primary); cursor: pointer; }
+.social-login { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.social-btn { padding: 0.75rem; background: var(--color-bg-glass); border: var(--border-glass); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 500; font-size: 0.9rem; transition: all var(--transition-fast); backdrop-filter: blur(10px); }
+.social-btn:hover { background: var(--color-bg-glass-hover, rgba(255,255,255,0.08)); border-color: var(--color-accent-primary); transform: translateY(-2px); }
