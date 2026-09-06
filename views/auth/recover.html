@@ -1,0 +1,25 @@
+<div class="auth-screen recover-screen">
+  <div class="auth-bg"></div>
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">🔑</div>
+      <h1 class="auth-title text-gradient">Recuperar acceso</h1>
+      <p class="auth-subtitle">Te enviaremos un enlace seguro</p>
+    </div>
+    <div class="card-glass">
+      <div class="recover-info">Ingresa el correo asociado a tu cuenta. Recibirás un <strong>enlace seguro</strong> para crear una nueva contraseña.</div>
+      <form id="recoverForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="recoverEmail">Correo electrónico</label>
+          <div class="input-wrapper">
+            <span class="input-icon-left"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+            <input type="email" id="recoverEmail" class="input has-icon-left" placeholder="tu@correo.com" required />
+          </div>
+          <div class="input-error" id="recoverEmailError">Ingresa un correo válido</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full"><span class="btn-text">Enviar enlace</span></button>
+      </form>
+    </div>
+    <div class="auth-footer">¿Recordaste tu contraseña? <a href="#" data-route="login" class="auth-link">Volver al login</a></div>
+  </div>
+</div>
