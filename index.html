@@ -74,7 +74,6 @@
     .toast.show { transform: translateX(0); }
     .toast.success { border-left: 3px solid #00ff9d; }
     .toast.error { border-left: 3px solid #ff3860; }
-    .hidden { display: none; }
     .role-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
     .role-card {
       padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -92,14 +91,36 @@
     }
     .stat-value { font-size: 2rem; font-weight: 700; background: var(--gradient);
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .error-box {
+      background: rgba(255,56,96,0.1); border: 1px solid #ff3860;
+      border-radius: 16px; padding: 1rem; margin: 1rem 0; color: #ff3860;
+    }
   </style>
 </head>
 <body>
   <div class="auth-bg"></div>
-  <div id="app"></div>
+  <div id="app">
+    <div class="container">
+      <div class="card">
+        <p style="text-align: center;">⏳ Cargando Fendyx...</p>
+      </div>
+    </div>
+  </div>
   <div id="toast" class="toast"></div>
 
   <script>
+    // Verificar que Supabase esté cargado
+    if (!window.supabase) {
+      document.getElementById('app').innerHTML = `
+        <div class="container">
+          <div class="error-box">
+            <strong>❌ Error:</strong> Supabase no se cargó. Verifica tu conexión a internet.
+          </div>
+        </div>
+      `;
+      throw new Error('Supabase no cargado');
+    }
+
     const supabase = window.supabase.createClient(
       'https://hzyjbwnedgpjzbaodilk.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWpid25lZGdwanpiYW9kaWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3MDUzNDMsImV4cCI6MjEwNDI4MTM0M30.koUX5Xi-eztsqztGlqRG0vagHFM642mcZCI_uR6lJb8'
@@ -215,7 +236,9 @@
     }
 
     function setupLogin() {
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      const form = document.getElementById('loginForm');
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('loginBtn');
         btn.disabled = true;
@@ -229,11 +252,13 @@
 
           if (error) throw error;
 
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('user_id', data.user.id)
             .single();
+
+          if (profileError) throw profileError;
 
           currentUser = data.user;
           userProfile = profile;
@@ -261,7 +286,9 @@
         });
       });
 
-      document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      const form = document.getElementById('registerForm');
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('registerBtn');
         btn.disabled = true;
@@ -306,10 +333,3 @@
       userProfile = null;
       toast('Sesión cerrada', 'success');
       navigate('login');
-    }
-
-    // Iniciar
-    navigate('login');
-  </script>
-</body>
-</html>
